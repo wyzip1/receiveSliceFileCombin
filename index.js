@@ -39,11 +39,7 @@ handleLastUpload = function(file, uid, uploadDir) {
   const fileList = fileCaches[uid]
   combinFile(fileList, resolve(process.cwd(), uploadDir, filename))
   delete fileCaches[uid]
-  return `${replacePath(uploadDir)}/${filename}`
-}
-
-function replacePath(path) {
-  return path.replace(/^\.\//, '').replace(/\/$/, '')
+  return filename
 }
 
 class HandleSliceFile {
