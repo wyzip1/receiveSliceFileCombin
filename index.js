@@ -21,10 +21,10 @@ function parseFileName(file) {
   return [filename, ext]
 }
 
-fileQueueAdd = function(uid, file, index=-1) {
+function fileQueueAdd(dirName, uid, file, index=-1) {
     !fileCaches[uid] && (fileCaches[uid] = [])
     const fileList = fileCaches[uid]
-    file.filePath = resolve(__dirname, 'upload', file.newFilename)
+    file.filePath = resolve(process.cwd(), dirName, file.newFilename)
     if(index === -1) return fileList.push(file)
     const originFile = fileList[index];
     fileList[index] = file
@@ -37,7 +37,7 @@ fileQueueAdd = function(uid, file, index=-1) {
 handleLastUpload = function(file, uid) {
   const [filename] = parseFileName(file)
   const fileList = fileCaches[uid]
-  combinFile(fileList, resolve(__dirname, 'files', filename))
+  combinFile(fileList, resolve(process.cwd(), 'files', filename))
   delete fileCaches[uid]
   return `http://localhost:3000/files/${filename}`
 }
@@ -52,7 +52,7 @@ class HandleSliceFile {
     const form = new IncomingForm({ uploadDir });
     form.parse(req, (err, _, { file }) => {
       if (err) return callback(err);
-      fileQueueAdd(uid, file, index)
+      fileQueueAdd(uploadDir, uid, file, index)
       const url = isLast ? handleLastUpload(file, uid) : null;
       callback(err, file, url)
     })
