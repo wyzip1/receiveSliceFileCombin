@@ -34,31 +34,35 @@ function fileQueueAdd(dirName, uid, file, index=-1) {
     }
 }
 
-handleLastUpload = function(file, uid) {
+handleLastUpload = function(file, uid, uploadDir) {
   const [filename] = parseFileName(file)
   const fileList = fileCaches[uid]
-  combinFile(fileList, resolve(process.cwd(), 'files', filename))
+  combinFile(fileList, resolve(process.cwd(), uploadDir, filename))
   delete fileCaches[uid]
-  return `http://localhost:3000/files/${filename}`
+  return `${replacePath(uploadDir)}/${filename}`
+}
+
+function replacePath(path) {
+  return path.replace(/^\.\//, '').replace(/\/$/, '')
 }
 
 class HandleSliceFile {
   options = {}
-  constructor({ uploadDir, uid, index }) {
-    this.setOptions({ uploadDir, uid, index })
+  constructor({ catchDir, uploadDir, uid, index }) {
+    this.setOptions({ catchDir, uploadDir, uid, index })
   }
   parse(req, isLast, callback) {
-    const { uploadDir, uid, index } = this.options
-    const form = new IncomingForm({ uploadDir });
+    const { catchDir, uploadDir, uid, index } = this.options
+    const form = new IncomingForm({ uploadDir: catchDir });
     form.parse(req, (err, _, { file }) => {
       if (err) return callback(err);
-      fileQueueAdd(uploadDir, uid, file, index)
-      const url = isLast ? handleLastUpload(file, uid) : null;
-      callback(err, file, url)
+      fileQueueAdd(catchDir, uid, file, index)
+      const filePath = isLast ? handleLastUpload(file, uid, uploadDir) : null;
+      callback(err, file, filePath)
     })
   }
-  setOptions({ uploadDir, uid, index }) {
-    this.options = { uploadDir, uid, index }
+  setOptions({ catchDir, uploadDir, uid, index }) {
+    this.options = { catchDir, uploadDir, uid, index }
   }
 }
 
